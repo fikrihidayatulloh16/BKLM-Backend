@@ -1,0 +1,144 @@
+// prisma/schema.prisma
+
+// Ini adalah generator client Prisma, yang akan membuatkan kita
+// tipe-tiPE TypeScript berdasarkan skema database kita.
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Ini adalah koneksi ke database kita (PostgreSQL).
+// Prisma otomatis mengambil DATABASE_URL dari file .env kita.
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===================================
+// Model Skema v0.4
+// (Multi-Tenant, Domain, & Batas Waktu)
+// ===================================
+
+// Model untuk Sekolah (Tenant Utama)
+model School {
+  id                  String       @id @default(uuid())
+  name                String
+  subscription_status String       @default("free") // free, paid, trial
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  // Relasi
+  users        User[]
+  domains      Domain[]
+  assessments  Assessment[]
+  // Relasi untuk data siswa (opsional di masa depan)
+  // students     Student[] 
+}
+
+// Model untuk Guru (User)
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String
+  password_hash String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relasi
+  school_id   String
+  school      School   @relation(fields: [school_id], references: [id], onDelete: Cascade)
+  assessments Assessment[]
+}
+
+// Model untuk Bidang/Domain (Sosial, Pribadi, dll)
+model Domain {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relasi
+  school_id String
+  school    School   @relation(fields: [school_id], references: [id], onDelete: Cascade)
+  questions Question[]
+
+  @@unique([school_id, name]) // Nama domain harus unik per sekolah
+}
+
+// Model untuk Asesmen (Kuesioner)
+model Assessment {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  
+  // === PERUBAHAN UNTUK BATAS WAKTU ===
+  status      AssessmentStatus @default(DRAFT) // Enum DRAFT, PUBLISHED, CLOSED
+  starts_at   DateTime? // Kapan asesmen mulai bisa diakses
+  expires_at  DateTime? // Kapan asesmen ditutup (batas waktu)
+  // ===================================
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relasi
+  creator_id String
+  creator    User     @relation(fields: [creator_id], references: [id], onDelete: Cascade)
+  school_id  String
+  school     School   @relation(fields: [school_id], references: [id], onDelete: Cascade)
+  
+  questions   Question[]
+  submissions Submission[]
+}
+
+// Model untuk Pertanyaan
+model Question {
+  id            String   @id @default(uuid())
+  question_text String
+  question_type String   @default("yes_no") // yes_no, multiple_choice
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relasi
+  assessment_id String
+  assessment    Assessment @relation(fields: [assessment_id], references: [id], onDelete: Cascade)
+  domain_id     String
+  domain        Domain     @relation(fields: [domain_id], references: [id], onDelete: Restrict) // Jangan hapus domain jika masih dipakai
+  
+  answers       Answer[]
+}
+
+// Model untuk Submission (Hasil kerja 1 siswa)
+model Submission {
+  id                 String   @id @default(uuid())
+  student_identifier String   // Kunci unik: normalisasi nama+kelas
+  student_name       String   // Nama siswa (untuk display)
+  student_class      String   // Kelas siswa (untuk display)
+  submitted_at       DateTime @default(now())
+
+  // Relasi
+  assessment_id String
+  assessment    Assessment @relation(fields: [assessment_id], references: [id], onDelete: Cascade)
+  answers       Answer[]
+
+  @@unique([assessment_id, student_identifier]) // Solusi A (mencegah duplikat)
+}
+
+// Model untuk Jawaban (per pertanyaan)
+model Answer {
+  id           String   @id @default(uuid())
+  answer_value String   // "1", "0", atau "option_id_abc"
+  createdAt    DateTime @default(now())
+
+  // Relasi
+  submission_id String
+  submission    Submission @relation(fields: [submission_id], references: [id], onDelete: Cascade)
+  question_id   String
+  question      Question   @relation(fields: [question_id], references: [id], onDelete: Cascade) // Hapus jawaban jika soal dihapus
+}
+
+// Enum untuk Status Asesmen (Fitur Batas Waktu)
+enum AssessmentStatus {
+  DRAFT     // Baru dibuat, belum bisa diakses siswa
+  PUBLISHED // Sedang berjalan, bisa diakses siswa
+  CLOSED    // Sudah selesai, ditutup manual atau otomatis
+}
