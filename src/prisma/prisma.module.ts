@@ -1,9 +1,11 @@
-import { Global, Module } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
+// src/prisma/prisma.module.ts
+
+import { Module, Global } from '@nestjs/common';
+import { PrismaService } from './prisma.service'; // <-- 1. Impor PrismaService
 
 @Global()
 @Module({
-  providers: [UsersService],
-  exports: [UsersService]
+  providers: [PrismaService], // <-- 2. Daftarkan PrismaService
+  exports: [PrismaService],   // <-- 3. Ekspor PrismaService
 })
 export class PrismaModule {}
