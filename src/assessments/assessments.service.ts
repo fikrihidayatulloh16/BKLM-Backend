@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAssessmentDto } from './dto/create-assessments.dto'
 import { AuthenticatedUser } from '../auth/decorators/get-user.decorators';
+import { UpdateAssessmentDto } from './dto/update-assessments.dto';
+import { AssessmentStatus } from '@prisma/client';
 
 @Injectable()
 export class AssessmentsService {
@@ -27,6 +29,15 @@ export class AssessmentsService {
             },
             orderBy: {
                 createdAt: 'desc',
+            }
+        })
+    }
+    //Mengubah assessment
+    async updateAssessment(id: string, dto: UpdateAssessmentDto) {
+        return this.prisma.assessment.update({
+            where: { id },
+            data: {
+                ...dto,
             }
         })
     }

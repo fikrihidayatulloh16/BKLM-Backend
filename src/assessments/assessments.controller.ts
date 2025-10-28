@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Put, Param } from '@nestjs/common';
 import { AssessmentsService } from './assessments.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateAssessmentDto } from './dto/create-assessments.dto';
+import { UpdateAssessmentDto } from './dto/update-assessments.dto';
 import { AuthenticatedUser, GetUser } from 'src/auth/decorators/get-user.decorators';
 
 @Controller('assessments')
@@ -20,5 +21,11 @@ export class AssessmentsController {
   findAll(@GetUser() user: AuthenticatedUser) {
     //const user = req.user;
     return this.assessmentsService.findAllForUser(user);
+  }
+
+  //Mengubah assessment
+  @Put(':id')
+  update(@Body() dto: UpdateAssessmentDto, @Param('id') id: string) {
+    return this.assessmentsService.updateAssessment(id, dto);
   }
 }

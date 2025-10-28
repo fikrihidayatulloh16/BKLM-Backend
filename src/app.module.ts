@@ -7,13 +7,14 @@ import { UsersModule } from './users/users.module';
 import { DomainsModule } from './domains/domains.module';
 import { AssessmentsModule } from './assessments/assessments.module';
 import { QuestionsModule } from './questions/questions.module';
+import { SubmissionsModule } from './submissions/submissions.module';
 
 @Module({
   imports: [
     PrismaModule, 
     AuthModule,
     UsersModule, 
-    DomainsModule, AssessmentsModule, QuestionsModule
+    DomainsModule, AssessmentsModule, QuestionsModule, SubmissionsModule
   ],
   controllers: [AppController],
   providers: [AppService],

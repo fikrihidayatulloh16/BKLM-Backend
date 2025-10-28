@@ -1,5 +1,5 @@
 // src/questions/dto/create-question.dto.ts
-import { IsEnum, isNotEmpty, IsNotEmpty, IsString, isUUID, IsUUID } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreateQuestionDto {
   @IsNotEmpty()
