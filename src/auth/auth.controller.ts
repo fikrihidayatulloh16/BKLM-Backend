@@ -1,9 +1,12 @@
 // src/auth/auth.controller.ts
-import { Controller, Post, Body, Res } from '@nestjs/common';
+import { Controller, Post, Body, Res, Get, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterAuthDto } from './dto/register-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { AuthenticatedUser, GetUser } from 'src/auth/decorators/get-user.decorators';
+import { use } from 'passport';
 
 @Controller('auth') // Ini berarti endpoint kita adalah /auth
 export class AuthController {
@@ -51,5 +54,11 @@ export class AuthController {
     // Hapus cookie-nya
     res.clearCookie('access_token');
     return { message: 'Logout berhasil' };
+  }
+
+  @Get('me')
+  @UseGuards(AuthGuard('jwt'))
+  getProfile(@GetUser() user: AuthenticatedUser) {
+    return user;
   }
 }
