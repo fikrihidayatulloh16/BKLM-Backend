@@ -51,6 +51,9 @@ export class QuestionsService {
 
     return this.prisma.question.findMany({
       where: { assessment_id: assessmentId },
+      include: {
+        domain: true, // Beritahu Prisma untuk mengambil data domain terkait
+      },
     });
   }
 }
