@@ -1,42 +1,37 @@
 // src/auth/jwt.strategy.ts
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { UsersService } from 'src/users/users.service';
+import { Request } from 'express'; // <-- Import Request dari Express
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-    constructor(private usersService: UsersService) {
-        // 1. Ambil secret dari process.env
-        const secret = process.env.JWT_SECRET;
+  constructor() { // <-- Kita tidak perlu UsersService di sini lagi
+    super({
+      // Di sinilah kita mendefinisikan cara mengambil token
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (request: Request) => {
+          const cookie = request?.cookies?.access_token;
 
-        // 2. Lakukan validasi. Jika tidak ada, gagalkan startup.
-        if (!secret) {
-            throw new Error('JWT_SECRET tidak ditemukan di environment variables');
-        }
+          if (typeof cookie === 'object' && cookie.token) {
+            return cookie.token;
+          }
+          return cookie;
+        },
+      ]),
+      ignoreExpiration: false,
+      secretOrKey: process.env.JWT_SECRET || 'fallback-secret-key-just-in-case',
+    });
+  }
 
-        // 3. Panggil super() dengan variabel 'secret' yang sudah pasti string
-        super({
-            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-            ignoreExpiration: false,
-            secretOrKey: secret, // <-- Gunakan variabel 'secret' di sini
-        });
-    }
-
-  // Fungsi ini akan otomatis dipanggil oleh Passport
-  // setelah token divalidasi
+  // Fungsi validate tidak berubah sama sekali
   async validate(payload: any) {
-    // payload di sini adalah isi token yang kita buat di AuthService
-    // { sub: user.id, email: user.email, school_id: user.school_id }
-
-    // Kita bisa tambahkan pengecekan ke DB jika perlu, tapi untuk sekarang
-    // kita percaya isi tokennya.
     if (!payload.sub || !payload.school_id) {
       throw new UnauthorizedException('Token tidak valid');
     }
-
-    // Objek yang di-return di sini akan di-inject
-    // ke dalam `request.user` di semua controller yang terproteksi
     return {
       id: payload.sub,
       email: payload.email,

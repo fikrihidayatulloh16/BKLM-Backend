@@ -36,10 +36,7 @@ export class AuthService {
 
       // 3. Buat token untuk user baru
       const token = await this._createToken(user);
-      return {
-        message: 'Registrasi berhasil',
-        token,
-      };
+      return {token};
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException('Terjadi kesalahan saat registrasi');
@@ -64,10 +61,7 @@ export class AuthService {
 
     // 3. Buat token
     const token = await this._createToken(user);
-    return {
-      message: 'Login berhasil',
-      token,
-    };
+    return {token};
   }
 
   /**
