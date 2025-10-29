@@ -8,13 +8,14 @@ import { DomainsModule } from './domains/domains.module';
 import { AssessmentsModule } from './assessments/assessments.module';
 import { QuestionsModule } from './questions/questions.module';
 import { SubmissionsModule } from './submissions/submissions.module';
+import { ReportingModule } from './reporting/reporting.module';
 
 @Module({
   imports: [
     PrismaModule, 
     AuthModule,
     UsersModule, 
-    DomainsModule, AssessmentsModule, QuestionsModule, SubmissionsModule
+    DomainsModule, AssessmentsModule, QuestionsModule, SubmissionsModule, ReportingModule
   ],
   controllers: [AppController],
   providers: [AppService],
