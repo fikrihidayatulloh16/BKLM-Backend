@@ -60,4 +60,17 @@ export class UsersService {
       where: { email },
     });
   }
+
+  async findProfileById(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (user) {
+      // Hapus hash password sebelum mengirim
+      const { password_hash, ...result } = user;
+      return result;
+    }
+    return null;
+  }
 }

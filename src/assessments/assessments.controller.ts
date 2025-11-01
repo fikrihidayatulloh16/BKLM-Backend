@@ -23,6 +23,15 @@ export class AssessmentsController {
     return this.assessmentsService.findAllForUser(user);
   }
 
+  @Get(':id')
+  findOne(
+    @Param('id') id: string, 
+    @GetUser() user: AuthenticatedUser
+  ) {
+    // Kita akan tambahkan logic-nya di service
+    return this.assessmentsService.findOneForUser(id, user);
+  }
+
   //Mengubah assessment
   @Put(':id')
   update(@Body() dto: UpdateAssessmentDto, @Param('id') id: string) {

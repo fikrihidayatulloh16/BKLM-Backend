@@ -7,10 +7,12 @@ import { LoginAuthDto } from './dto/login-auth.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthenticatedUser, GetUser } from 'src/auth/decorators/get-user.decorators';
 import { use } from 'passport';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('auth') // Ini berarti endpoint kita adalah /auth
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService,
+              private userService: UsersService) {}
 
   @Post('register')
   async register(
@@ -50,7 +52,7 @@ export class AuthController {
 
   // (BONUS) Kita tambahkan endpoint logout
   @Post('logout')
-  logout(@Res({ passthrough: true }) res: Response) {
+  async logout(@Res({ passthrough: true }) res: Response) {
     // Hapus cookie-nya
     res.clearCookie('access_token');
     return { message: 'Logout berhasil' };
@@ -58,7 +60,7 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
-  getProfile(@GetUser() user: AuthenticatedUser) {
-    return user;
+  async getProfile(@GetUser() user: AuthenticatedUser) {
+    return this.userService.findProfileById(user.id);
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAssessmentDto } from './dto/create-assessments.dto'
 import { AuthenticatedUser } from '../auth/decorators/get-user.decorators';
@@ -32,6 +32,23 @@ export class AssessmentsService {
             }
         })
     }
+
+    async findOneForUser(id: string, user: AuthenticatedUser) {
+        const assessment = await this.prisma.assessment.findUnique({
+        where: { id },
+        });
+
+        // Validasi
+        if (!assessment) {
+        throw new NotFoundException('Asesmen tidak ditemukan');
+        }
+        if (assessment.creator_id !== user.id) {
+        throw new UnauthorizedException('Anda tidak punya akses ke asesmen ini');
+        }
+
+        return assessment;
+    }
+
     //Mengubah assessment
     async updateAssessment(id: string, dto: UpdateAssessmentDto) {
         return this.prisma.assessment.update({
